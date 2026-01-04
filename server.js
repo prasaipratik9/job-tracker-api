@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const User = require('./models/User'); // NEW
 
 // Initialize Express app
 const app = express();
@@ -52,6 +53,42 @@ app.get('/api/test', (req, res) => {
         mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     },
   });
+});
+
+// Test route - Create a user (NEW)
+app.post('/api/users/test', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Create new user instance
+    const user = new User({
+      name,
+      email,
+      password,
+    });
+
+    // Save user (this triggers the pre-save middleware)
+    await user.save();
+
+    res.status(201).json({
+      status: 'success',
+      message: 'User created successfully',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          createdAt: user.createdAt,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(400).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
 });
 
 // Start server
